@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>图书管理系统</title>
+<style>
+  body{font-family:sans-serif;max-width:800px;margin:30px auto;padding:0 20px;background:#1a1a2e;color:#eee}
+  h1{color:#e94560}
+  .card{background:#16213e;border-radius:8px;padding:20px;margin:15px 0}
+  input,button{padding:10px;margin:5px;border-radius:5px;border:none;font-size:14px}
+  input{background:#0f3460;color:#eee;width:150px}
+  button{background:#e94560;color:#fff;cursor:pointer}
+  button:hover{background:#c23152}
+  table{width:100%;border-collapse:collapse;margin-top:10px}
+  th,td{padding:10px;text-align:left;border-bottom:1px solid #0f3460}
+  th{color:#e94560}
+  .result{color:#4ecca3;margin-top:10px}
+</style>
+</head>
+<body>
+
+<h1>图书管理 CRUD</h1>
+
+<!-- 查全部 -->
+<div class="card">
+  <h3>📚 查全部图书</h3>
+  <button onclick="getAll()">刷新列表</button>
+  <table id="bookList"><tr><th>ID</th><th>书名</th><th>作者</th><th>价格</th></tr></table>
+</div>
+
+<!-- 新增 -->
+<div class="card">
+  <h3>➕ 新增图书</h3>
+  <input id="addName" placeholder="书名">
+  <input id="addAuthor" placeholder="作者">
+  <input id="addPrice" placeholder="价格" type="number" step="0.1">
+  <button onclick="addBook()">新增</button>
+  <div id="addResult" class="result"></div>
+</div>
+
+<!-- 修改 -->
+<div class="card">
+  <h3>✏️ 修改图书</h3>
+  <input id="editId" placeholder="要改的ID" type="number">
+  <input id="editName" placeholder="新书名">
+  <input id="editAuthor" placeholder="新作者">
+  <input id="editPrice" placeholder="新价格" type="number" step="0.1">
+  <button onclick="updateBook()">修改</button>
+  <div id="editResult" class="result"></div>
+</div>
+
+<!-- 删除 -->
+<div class="card">
+  <h3>🗑️ 删除图书</h3>
+  <input id="delId" placeholder="要删的ID" type="number">
+  <button onclick="deleteBook()">删除</button>
+  <div id="delResult" class="result"></div>
+</div>
+
+<script>
+const BASE = 'http://localhost:8080';
+
+async function getAll(){
+  const res = await fetch(BASE+'/books');
+  const books = await res.json();
+  let html = '<tr><th>ID</th><th>书名</th><th>作者</th><th>价格</th></tr>';
+  books.forEach(b => html += `<tr><td>${b.id}</td><td>${b.name}</td><td>${b.author}</td><td>¥${b.price}</td></tr>`);
+  document.getElementById('bookList').innerHTML = html;
+}
+
+async function addBook(){
+  const name = document.getElementById('addName').value;
+  const author = document.getElementById('addAuthor').value;
+  const price = document.getElementById('addPrice').value;
+  const res = await fetch(BASE+'/books',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name,author,price:parseFloat(price)})
+  });
+  document.getElementById('addResult').textContent = await res.text();
+  getAll();
+}
+
+async function updateBook(){
+  const id = document.getElementById('editId').value;
+  const name = document.getElementById('editName').value;
+  const author = document.getElementById('editAuthor').value;
+  const price = document.getElementById('editPrice').value;
+  const res = await fetch(BASE+'/books/'+id,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name,author,price:parseFloat(price)})
+  });
+  document.getElementById('editResult').textContent = await res.text();
+  getAll();
+}
+
+async function deleteBook(){
+  const id = document.getElementById('delId').value;
+  const res = await fetch(BASE+'/books/'+id,{method:'DELETE'});
+  document.getElementById('delResult').textContent = await res.text();
+  getAll();
+}
+
+getAll();
+</script>
+</body>
+</html>
